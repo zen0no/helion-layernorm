@@ -1,7 +1,6 @@
 import functools
 import logging
 import random
-from argparse import ArgumentParser
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
@@ -105,7 +104,7 @@ def run_bench_case(case: BenchCase):
 @torch.no_grad()
 def main():
     inner_dims = [16, 512, 768, 1024, 2048]
-    outer_dims = [1, 128, 1024, 2561]
+    outer_dims = [128, 1024, 2561, 25512]
 
     for outer_dim in outer_dims:
         for inner_dim in inner_dims:
@@ -126,15 +125,4 @@ def main():
 
 if __name__ == "__main__":
     set_seed(42)
-
-    parser = ArgumentParser()
-    parser.add_argument("--full-search", action="store_true")
-
-    args = parser.parse_args()
-
-    if args.full_search:
-        layer_norm_helion.settings.autotune_effort = "full"
-    else:
-        layer_norm_helion.settings.autotune_effort = "quick"
-
     main()
