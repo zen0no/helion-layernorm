@@ -1,6 +1,7 @@
 import functools
 import logging
 import random
+from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
@@ -64,7 +65,6 @@ class BenchCase:
     fn: Callable[[], Any]
     baseline_fn: Callable[[], Any]
     args: Any
-    niters: int = 100
 
 
 def bench(fn: Callable[[], Any], warmup: int = 10, niters=100) -> float:
@@ -85,16 +85,22 @@ def bench(fn: Callable[[], Any], warmup: int = 10, niters=100) -> float:
     return start.elapsed_time(end) / niters
 
 
-def run_bench_case(case: BenchCase):
+def run_bench_case(
+    case: BenchCase,
+    atol: float = 1e-6,
+    rtol: float = 1e-6,
+    niters: int = 100,
+    warmup: int = 10,
+):
     logger.info(f"Running benchmark for {case.name}")
     # Assert correctness
     fn_args = functools.partial(case.fn, *case.args)
     baseline_fn_args = functools.partial(case.baseline_fn, *case.args)
 
-    torch.testing.assert_close(fn_args(), baseline_fn_args())
+    torch.testing.assert_close(fn_args(), baseline_fn_args(), atol=atol, rtol=rtol)
 
-    result = bench(fn_args, case.niters)
-    result_baseline = bench(baseline_fn_args, case.niters)
+    result = bench(fn=fn_args, niters=niters, warmup=warmup)
+    result_baseline = bench(fn=baseline_fn_args, niters=niters, warmup=warmup)
 
     logger.info(
         f" Results. Helion: {result:.2f} ms, Torch: {result_baseline:.2f} ms, Speedup: {result_baseline / result:.2f}x"
@@ -102,12 +108,9 @@ def run_bench_case(case: BenchCase):
 
 
 @torch.no_grad()
-def main():
-    inner_dims = [16, 512, 768, 1024, 2048]
-    outer_dims = [128, 1024, 2561, 25512]
-
-    for outer_dim in outer_dims:
-        for inner_dim in inner_dims:
+def main(args: Namespace):
+    for outer_dim in args.outer_dims:
+        for inner_dim in args.inner_dims:
             x = torch.randn(outer_dim, inner_dim, device="cuda")
             gamma = torch.randn(inner_dim, device="cuda")
             beta = torch.randn(inner_dim, device="cuda")
@@ -119,10 +122,31 @@ def main():
                 layer_norm_torch,
                 (x, gamma, beta, eps),
             )
-            run_bench_case(case)
+            run_bench_case(
+                case=case,
+                atol=args.atol,
+                rtol=args.rtol,
+                niters=args.niters,
+                warmup=args.warmup,
+            )
     logger.info("Benchmarking completed successfully")
 
 
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--outer-dims", type=int, nargs="+", default=[128, 1024, 2561, 25512]
+    )
+    parser.add_argument(
+        "--inner-dims", type=int, nargs="+", default=[16, 512, 768, 1024, 2048]
+    )
+    parser.add_argument("--niters", type=int, default=100)
+    parser.add_argument("--warmup", type=int, default=10)
+    parser.add_argument("--atol", type=float, default=1e-6)
+    parser.add_argument("--rtol", type=float, default=1e-6)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    set_seed(42)
-    main()
+    args = parse_args()
+    main(args)

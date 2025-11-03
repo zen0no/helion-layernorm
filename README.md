@@ -14,7 +14,11 @@ pip install .
 
 ## Usage
 
-To benchmark this implementation, use following command:
+### Benchmarking
+
+#### Basic Benchmark
+
+Run the benchmark with default parameters:
 
 ```bash
 python3 benchmark.py
@@ -22,12 +26,35 @@ python3 benchmark.py
 
 Results will be logged to `logs/benchmark_run_<timestamp>.log`.
 
+#### Custom Benchmark
+
+Customize benchmark dimensions and iterations:
+
+```bash
+python3 benchmark.py --outer-dims 128 512 --inner-dims 256 512 --niters 200
+```
+
+#### Benchmark Options
+
+- `--outer-dims`: Batch sizes to test (default: `128 1024 2561 25512`)
+- `--inner-dims`: Sequence lengths to test (default: `16 512 768 1024 2048`)
+- `--niters`: Number of iterations per benchmark (default: `100`)
+- `--warmup`: Number of warmup iterations (default: `10`)
+- `--atol`: Absolute tolerance for correctness check (default: `1e-6`)
+- `--rtol`: Relative tolerance for correctness check (default: `1e-6`)
+
+#### Example Output
+
+The benchmark will output timing results and log them:
+
+```
+Results. Helion: 0.64 ms, Torch: 0.59 ms, Speedup: 0.93x
+```
+
 ## Benchmarking Results
 
-Benchmark results comparing Helion LayerNorm against PyTorch's native `F.layer_norm` implementation. All benchmarks were run on CUDA with 100 iterations and 10 warmup runs.
+Benchmark results, which were run on Quadro RTX 4000. As you can see, at big tensors performance comparable with Pytorch's native `F.layer_norm` implemenation, and even outpeforms it. Time were averaged across `niters=100` runs.
 
-
-As you can see, on large inputs the Helion kernel has performance comparable with PyTorch's native implementation. All runs were made on Quaro RTX 4000.
 
 ### Performance Summary
 
