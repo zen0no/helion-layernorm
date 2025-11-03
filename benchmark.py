@@ -108,38 +108,31 @@ def run_bench_case(
 
 
 @torch.no_grad()
-def main(args: Namespace):
-    for outer_dim in args.outer_dims:
-        for inner_dim in args.inner_dims:
-            x = torch.randn(outer_dim, inner_dim, device="cuda")
-            gamma = torch.randn(inner_dim, device="cuda")
-            beta = torch.randn(inner_dim, device="cuda")
-            eps = 1e-5
+def main(test_dims: list[tuple[int, int]], args: Namespace):
+    for outer_dim, inner_dim in test_dims:
+        x = torch.randn(outer_dim, inner_dim, device="cuda")
+        gamma = torch.randn(inner_dim, device="cuda")
+        beta = torch.randn(inner_dim, device="cuda")
+        eps = 1e-5
 
-            case = BenchCase(
-                f"input_shape_{outer_dim}_{inner_dim}",
-                layer_norm_helion,
-                layer_norm_torch,
-                (x, gamma, beta, eps),
-            )
-            run_bench_case(
-                case=case,
-                atol=args.atol,
-                rtol=args.rtol,
-                niters=args.niters,
-                warmup=args.warmup,
-            )
+        case = BenchCase(
+            f"input_shape_{outer_dim}_{inner_dim}",
+            layer_norm_helion,
+            layer_norm_torch,
+            (x, gamma, beta, eps),
+        )
+        run_bench_case(
+            case=case,
+            atol=args.atol,
+            rtol=args.rtol,
+            niters=args.niters,
+            warmup=args.warmup,
+        )
     logger.info("Benchmarking completed successfully")
 
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument(
-        "--outer-dims", type=int, nargs="+", default=[128, 1024, 2561, 25512]
-    )
-    parser.add_argument(
-        "--inner-dims", type=int, nargs="+", default=[16, 512, 768, 1024, 2048]
-    )
     parser.add_argument("--niters", type=int, default=100)
     parser.add_argument("--warmup", type=int, default=10)
     parser.add_argument("--atol", type=float, default=1e-6)
@@ -148,5 +141,14 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    test_dims = [
+        (2048, 1024),
+        (2048, 1536),
+        (2048, 2048),
+        (2048, 7168),
+        (3100, 1536),
+        (3100, 2048),
+        (3100, 7168),
+    ]
     args = parse_args()
-    main(args)
+    main(test_dims=test_dims, args=args)
