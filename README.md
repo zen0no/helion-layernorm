@@ -31,13 +31,11 @@ Results will be logged to `logs/benchmark_run_<timestamp>.log`.
 Customize benchmark dimensions and iterations:
 
 ```bash
-python3 benchmark.py --outer-dims 128 512 --inner-dims 256 512 --niters 200
+python3 benchmark.py --niters 100 --warmup 10
 ```
 
 #### Benchmark Options
 
-- `--outer-dims`: Batch sizes to test (default: `128 1024 2561 25512`)
-- `--inner-dims`: Sequence lengths to test (default: `16 512 768 1024 2048`)
 - `--niters`: Number of iterations per benchmark (default: `100`)
 - `--warmup`: Number of warmup iterations (default: `10`)
 - `--atol`: Absolute tolerance for correctness check (default: `1e-6`)
