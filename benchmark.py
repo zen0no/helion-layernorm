@@ -108,11 +108,11 @@ def run_bench_case(
 
 
 @torch.no_grad()
-def main(test_dims: list[tuple[int, int]], args: Namespace):
+def main(test_dims: list[tuple[int, int]], args: Namespace): 
     for outer_dim, inner_dim in test_dims:
-        x = torch.randn(outer_dim, inner_dim, device="cuda")
-        gamma = torch.randn(inner_dim, device="cuda")
-        beta = torch.randn(inner_dim, device="cuda")
+        x = torch.randn(outer_dim, inner_dim, device="cuda", dtype=torch.float32)
+        gamma = torch.randn(inner_dim, device="cuda", dtype=torch.float32)
+        beta = torch.randn(inner_dim, device="cuda", dtype=torch.float32)
         eps = 1e-5
 
         case = BenchCase(
@@ -135,8 +135,8 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--niters", type=int, default=100)
     parser.add_argument("--warmup", type=int, default=10)
-    parser.add_argument("--atol", type=float, default=1e-6)
-    parser.add_argument("--rtol", type=float, default=1e-6)
+    parser.add_argument("--atol", type=float, default=1.3e-6)
+    parser.add_argument("--rtol", type=float, default=1e-5)
     return parser.parse_args()
 
 

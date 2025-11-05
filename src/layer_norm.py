@@ -3,13 +3,13 @@ import helion.language as hl
 import torch
 
 
-@helion.kernel(autotune_effort="quick")
+@helion.kernel(autotune_effort="quick", autotune_random_seed=42)
 def layer_norm(
     x: torch.Tensor,
     gamma: torch.Tensor,
     beta: torch.Tensor,
     eps: float,
-) -> [torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> [torch.Tensor]:
     out = torch.empty_like(x)
 
     bs, seq_len = x.shape
